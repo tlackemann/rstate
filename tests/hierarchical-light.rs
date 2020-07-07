@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use rstate::*;
-    use std::collections::HashMap;
     use std::hash::Hash;
 
     #[test]
@@ -30,8 +29,13 @@ mod tests {
             timer: u8,
         }
 
-        let mut states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
-        states.insert(
+        let context = Context { timer: 3 };
+        let mut machine = Machine::<Action, State, Context>::new(
+            "hierarchical-light".to_string(),
+            State::Green,
+            context,
+        );
+        machine.add_state(
             State::Green,
             Transition {
                 context: None,
@@ -41,7 +45,7 @@ mod tests {
                 }),
             },
         );
-        states.insert(
+        machine.add_state(
             State::Yellow,
             Transition {
                 context: None,
@@ -51,7 +55,7 @@ mod tests {
                 }),
             },
         );
-        states.insert(
+        machine.add_state(
             State::Red(Red::Wait),
             Transition {
                 context: None,
@@ -61,7 +65,7 @@ mod tests {
                 }),
             },
         );
-        states.insert(
+        machine.add_state(
             State::Red(Red::Walk),
             Transition {
                 context: Some(|mut context, action, _state| {
@@ -82,14 +86,6 @@ mod tests {
                     }
                 }),
             },
-        );
-
-        let context = Context { timer: 3 };
-        let mut machine = Machine::<Action, State, Context>::new(
-            "hierarchical-light".to_string(),
-            State::Green,
-            states,
-            context,
         );
 
         assert_eq!(machine.value, State::Green);

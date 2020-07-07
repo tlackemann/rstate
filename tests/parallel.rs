@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use rstate::*;
-    use std::collections::HashMap;
     use std::hash::Hash;
 
     #[test]
@@ -42,8 +41,28 @@ mod tests {
 
         let context = Context {};
 
-        let mut bold_states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
-        bold_states.insert(
+        let mut bold_machine = Machine::<Action, State, Context>::new(
+            "bold".to_string(),
+            State::Bold(ToggleState::Off),
+            context,
+        );
+        let mut italics_machine = Machine::<Action, State, Context>::new(
+            "italics".to_string(),
+            State::Italics(ToggleState::Off),
+            context,
+        );
+        let mut underline_machine = Machine::<Action, State, Context>::new(
+            "underline".to_string(),
+            State::Underline(ToggleState::Off),
+            context,
+        );
+        let mut list_machine = Machine::<Action, State, Context>::new(
+            "list".to_string(),
+            State::List(ListState::None),
+            context,
+        );
+
+        bold_machine.add_state(
             State::Bold(ToggleState::Off),
             Transition {
                 context: None,
@@ -53,7 +72,7 @@ mod tests {
                 }),
             },
         );
-        bold_states.insert(
+        bold_machine.add_state(
             State::Bold(ToggleState::On),
             Transition {
                 context: None,
@@ -64,8 +83,7 @@ mod tests {
             },
         );
 
-        let mut italics_states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
-        italics_states.insert(
+        italics_machine.add_state(
             State::Italics(ToggleState::Off),
             Transition {
                 context: None,
@@ -75,7 +93,7 @@ mod tests {
                 }),
             },
         );
-        italics_states.insert(
+        italics_machine.add_state(
             State::Italics(ToggleState::On),
             Transition {
                 context: None,
@@ -86,9 +104,7 @@ mod tests {
             },
         );
 
-        let mut underline_states: HashMap<State, Transition<Action, State, Context>> =
-            HashMap::new();
-        underline_states.insert(
+        underline_machine.add_state(
             State::Underline(ToggleState::Off),
             Transition {
                 context: None,
@@ -98,7 +114,7 @@ mod tests {
                 }),
             },
         );
-        underline_states.insert(
+        underline_machine.add_state(
             State::Underline(ToggleState::On),
             Transition {
                 context: None,
@@ -109,8 +125,7 @@ mod tests {
             },
         );
 
-        let mut list_states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
-        list_states.insert(
+        list_machine.add_state(
             State::List(ListState::None),
             Transition {
                 context: None,
@@ -122,7 +137,7 @@ mod tests {
                 }),
             },
         );
-        list_states.insert(
+        list_machine.add_state(
             State::List(ListState::Numbers),
             Transition {
                 context: None,
@@ -134,7 +149,7 @@ mod tests {
                 }),
             },
         );
-        list_states.insert(
+        list_machine.add_state(
             State::List(ListState::Bullets),
             Transition {
                 context: None,
@@ -145,31 +160,6 @@ mod tests {
                     _ => state,
                 }),
             },
-        );
-
-        let bold_machine = Machine::<Action, State, Context>::new(
-            "bold".to_string(),
-            State::Bold(ToggleState::Off),
-            bold_states,
-            context,
-        );
-        let italics_machine = Machine::<Action, State, Context>::new(
-            "italics".to_string(),
-            State::Italics(ToggleState::Off),
-            italics_states,
-            context,
-        );
-        let underline_machine = Machine::<Action, State, Context>::new(
-            "underline".to_string(),
-            State::Underline(ToggleState::Off),
-            underline_states,
-            context,
-        );
-        let list_machine = Machine::<Action, State, Context>::new(
-            "list".to_string(),
-            State::List(ListState::None),
-            list_states,
-            context,
         );
 
         let mut machine = ParallelMachine::<Action, State, Context>::new(

@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use rstate::*;
-    use std::collections::HashMap;
     use std::hash::Hash;
 
     #[test]
@@ -22,35 +21,34 @@ mod tests {
             count: u8,
         }
 
-        let mut states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
-        states.insert(
-            State::Active,
-            Transition {
-                context: None,
-                on: Some(|context, action, state| match action {
-                    Action::Toggle => State::Inactive,
-                }),
-            },
-        );
-        states.insert(
-            State::Inactive,
-            Transition {
-                context: Some(|mut context, _action, state| {
-                    context.count += 1;
-                    context
-                }),
-                on: Some(|context, action, state| match action {
-                    Action::Toggle => State::Active,
-                }),
-            },
-        );
-
         let context = Context { count: 0 };
         let mut machine = Machine::<Action, State, Context>::new(
             "toggle".to_string(),
             State::Inactive,
-            states,
             context,
+        );
+
+        machine.add_state(
+            State::Active,
+            Transition {
+                context: None,
+                on: Some(|_context, action, _state| match action {
+                    Action::Toggle => State::Inactive,
+                }),
+            },
+        );
+
+        machine.add_state(
+            State::Inactive,
+            Transition {
+                context: Some(|mut context, _action, _state| {
+                    context.count += 1;
+                    context
+                }),
+                on: Some(|_context, action, _state| match action {
+                    Action::Toggle => State::Active,
+                }),
+            },
         );
 
         assert_eq!(machine.value, State::Inactive);

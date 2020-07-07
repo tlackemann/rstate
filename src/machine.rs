@@ -25,7 +25,6 @@ impl<A: Copy, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
     pub fn new(
         id: String,
         initial: S,
-        states: HashMap<S, Transition<A, S, C>>,
         context: C,
     ) -> Self {
         Machine::<A, S, C> {
@@ -33,8 +32,12 @@ impl<A: Copy, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
             value: initial,
             id,
             initial,
-            states,
+            states: HashMap::new(),
         }
+    }
+
+    pub fn add_state(&mut self, state_name: S, state: Transition<A, S, C>) {
+        self.states.insert(state_name, state);
     }
 
     /// Send an action to the state machine

@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use rstate::*;
-    use std::collections::HashMap;
     use std::hash::Hash;
 
     #[test]
@@ -22,41 +21,39 @@ mod tests {
         struct Context {
         }
 
-        let mut states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
-        states.insert(
-            State::Green,
-            Transition {
-                context: None,
-                on: Some(|context, action, state| match action {
-                    Action::Timer => State::Yellow,
-                }),
-            },
-        );
-        states.insert(
-            State::Yellow,
-            Transition {
-                context: None,
-                on: Some(|context, action, state| match action {
-                    Action::Timer => State::Red,
-                }),
-            },
-        );
-        states.insert(
-            State::Red,
-            Transition {
-                context: None,
-                on: Some(|context, action, state| match action {
-                    Action::Timer => State::Green,
-                }),
-            },
-        );
-
         let context = Context {};
         let mut machine = Machine::<Action, State, Context>::new(
             "light".to_string(),
             State::Green,
-            states,
             context,
+        );
+
+        machine.add_state(
+            State::Green,
+            Transition {
+                context: None,
+                on: Some(|_context, action, _state| match action {
+                    Action::Timer => State::Yellow,
+                }),
+            },
+        );
+        machine.add_state(
+            State::Yellow,
+            Transition {
+                context: None,
+                on: Some(|_context, action, _state| match action {
+                    Action::Timer => State::Red,
+                }),
+            },
+        );
+        machine.add_state(
+            State::Red,
+            Transition {
+                context: None,
+                on: Some(|_context, action, _state| match action {
+                    Action::Timer => State::Green,
+                }),
+            },
         );
 
         assert_eq!(machine.value, State::Green);

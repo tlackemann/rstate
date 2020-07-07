@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use rstate::*;
-    use std::collections::HashMap;
     use std::hash::Hash;
 
     #[test]
@@ -24,16 +23,23 @@ mod tests {
             count: u8,
         }
 
+        // Create a context
+        let context = Context { count: 0 };
+        let mut machine = Machine::<Action, State, Context>::new(
+            "increment".to_string(),
+            State::Active,
+            context,
+        );
+
         // Define transitions between states from actions
-        let mut states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
-        states.insert(
+        machine.add_state(
             State::Active,
             Transition {
-                on: Some(|context, action, state| match action {
+                on: Some(|_context, action, _state| match action {
                     Action::Finished => State::Done,
                     _ => State::Active,
                 }),
-                context: Some(|mut context, action, state| {
+                context: Some(|mut context, action, _state| {
                     match action {
                         Action::Increment(val) => context.count += val,
                         Action::Decrement(val) => context.count -= val,
@@ -43,14 +49,13 @@ mod tests {
                 }),
             },
         );
-
-        // Create a context
-        let context = Context { count: 0 };
-        let mut machine = Machine::<Action, State, Context>::new(
-            "increment".to_string(),
-            State::Active,
-            states,
-            context,
+        // Define transitions between states from actions
+        machine.add_state(
+            State::Done,
+            Transition {
+                on: None,
+                context: None,
+            },
         );
 
         assert_eq!(machine.value, State::Active);
