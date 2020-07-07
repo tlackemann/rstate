@@ -1,4 +1,5 @@
 use std::hash::Hash;
+use std::fmt::Debug;
 
 use crate::machine::*;
 
@@ -9,7 +10,7 @@ pub struct ParallelMachine<A, S, C> {
     pub value: Vec<S>
 }
 
-impl<A: Copy, S: Eq + Hash + Copy, C: Copy> ParallelMachine<A, S, C> {
+impl<A: Copy, S: Eq + Hash + Copy, C: Debug + Copy> ParallelMachine<A, S, C> {
     /// Create a new state machine
     pub fn new(id: String, machines: Vec<Machine<A, S, C>>) -> Self {
         let value = machines.iter().map(|machine| machine.value).collect();

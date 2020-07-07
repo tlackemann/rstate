@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::fmt::Debug;
 
 /// Create and manipulate state machines
 #[derive(Debug)]
@@ -20,7 +21,7 @@ pub struct Machine<A, S, C> {
     pub states: HashMap<S, Transition<A, S, C>>,
 }
 
-impl<A: Copy, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
+impl<A: Copy, S: Eq + Hash + Copy, C: Debug + Copy> Machine<A, S, C> {
     /// Create a new state machine
     pub fn new(
         id: String,
@@ -38,6 +39,15 @@ impl<A: Copy, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
 
     pub fn add_state(&mut self, state_name: S, state: Transition<A, S, C>) {
         self.states.insert(state_name, state);
+    }
+
+    pub fn set_state(&mut self, state_name: S) {
+        self.value = state_name;
+    }
+
+    pub fn set_context(&mut self, context: C) {
+        println!("{:?}", context);
+        self.context = context;
     }
 
     /// Send an action to the state machine
