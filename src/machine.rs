@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::hash::Hash;
 use std::fmt::Debug;
+use std::hash::Hash;
 
 /// Create and manipulate state machines
 #[derive(Debug)]
@@ -23,11 +23,7 @@ pub struct Machine<A, S, C> {
 
 impl<A: Copy, S: Eq + Hash + Copy, C: Debug + Copy> Machine<A, S, C> {
     /// Create a new state machine
-    pub fn new(
-        id: String,
-        initial: S,
-        context: C,
-    ) -> Self {
+    pub fn new(id: String, initial: S, context: C) -> Self {
         Machine::<A, S, C> {
             context,
             value: initial,
@@ -52,6 +48,8 @@ impl<A: Copy, S: Eq + Hash + Copy, C: Debug + Copy> Machine<A, S, C> {
 
     /// Send an action to the state machine
     pub fn transition(&mut self, action: &A) {
+        let current_value = self.value.clone();
+
         if let Some(transition) = self.states.get(&self.value) {
             match transition.context {
                 Some(fn_context) => {
@@ -67,6 +65,28 @@ impl<A: Copy, S: Eq + Hash + Copy, C: Debug + Copy> Machine<A, S, C> {
                 None => {}
             }
         }
+
+        if &self.value != &current_value {
+            // Run the on_entry for the newest state
+            if let Some(transition) = self.states.get(&self.value) {
+                match transition.on_entry {
+                    Some(fn_on_entry) => {
+                        self.context = fn_on_entry(self.context, action.to_owned(), self.value);
+                    }
+                    None => {}
+                }
+            }
+
+            // Run the on_entry for the newest state
+            if let Some(transition) = self.states.get(&current_value) {
+                match transition.on_leave {
+                    Some(fn_on_leave) => {
+                        self.context = fn_on_leave(self.context, action.to_owned(), self.value);
+                    }
+                    None => {}
+                }
+            }
+        }
     }
 }
 
@@ -75,6 +95,23 @@ pub struct Transition<A, S, C> {
     /// The state to transition to
     pub on: Option<fn(context: C, action: A, state: S) -> S>,
 
+    /// Method to run when transitioned to for the first time
+    pub on_entry: Option<fn(context: C, action: A, state: S) -> C>,
+
+    /// Method to run when transitioned away from
+    pub on_leave: Option<fn(context: C, action: A, state: S) -> C>,
+
     /// The action to execute when running this transition
     pub context: Option<fn(context: C, action: A, state: S) -> C>,
+}
+
+impl<A, S, C> Default for Transition<A, S, C> {
+    fn default() -> Self {
+        Transition {
+            on: None,
+            on_entry: None,
+            on_leave: None,
+            context: None,
+        }
+    }
 }

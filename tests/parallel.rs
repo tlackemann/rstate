@@ -4,7 +4,7 @@ mod tests {
     use std::hash::Hash;
 
     #[test]
-    fn toggle_machine() {
+    fn parallel_machine() {
         #[derive(Copy, Clone, Debug)]
         enum Action {
             Bullets,
@@ -70,6 +70,7 @@ mod tests {
                     Action::ToggleBold => State::Bold(ToggleState::On),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
         bold_machine.add_state(
@@ -80,6 +81,7 @@ mod tests {
                     Action::ToggleBold => State::Bold(ToggleState::Off),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
 
@@ -91,6 +93,7 @@ mod tests {
                     Action::ToggleItalics => State::Italics(ToggleState::On),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
         italics_machine.add_state(
@@ -101,6 +104,7 @@ mod tests {
                     Action::ToggleItalics => State::Italics(ToggleState::Off),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
 
@@ -112,6 +116,7 @@ mod tests {
                     Action::ToggleUnderline => State::Underline(ToggleState::On),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
         underline_machine.add_state(
@@ -122,6 +127,7 @@ mod tests {
                     Action::ToggleUnderline => State::Underline(ToggleState::Off),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
 
@@ -135,6 +141,7 @@ mod tests {
                     Action::None => State::List(ListState::None),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
         list_machine.add_state(
@@ -147,6 +154,7 @@ mod tests {
                     Action::None => State::List(ListState::None),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
         list_machine.add_state(
@@ -159,6 +167,7 @@ mod tests {
                     Action::None => State::List(ListState::None),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
 

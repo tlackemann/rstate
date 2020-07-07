@@ -47,6 +47,7 @@ mod tests {
                     }
                     context
                 }),
+                ..Default::default()
             },
         );
         // Define transitions between states from actions
@@ -55,6 +56,7 @@ mod tests {
             Transition {
                 on: None,
                 context: None,
+                ..Default::default()
             },
         );
 

@@ -4,7 +4,7 @@ mod tests {
     use std::hash::Hash;
 
     #[test]
-    fn toggle_machine() {
+    fn light_machine() {
         #[derive(Copy, Clone, Debug)]
         enum Action {
             Timer,
@@ -35,6 +35,7 @@ mod tests {
                 on: Some(|_context, action, _state| match action {
                     Action::Timer => State::Yellow,
                 }),
+                ..Default::default()
             },
         );
         machine.add_state(
@@ -44,6 +45,7 @@ mod tests {
                 on: Some(|_context, action, _state| match action {
                     Action::Timer => State::Red,
                 }),
+                ..Default::default()
             },
         );
         machine.add_state(
@@ -53,6 +55,7 @@ mod tests {
                 on: Some(|_context, action, _state| match action {
                     Action::Timer => State::Green,
                 }),
+                ..Default::default()
             },
         );
 

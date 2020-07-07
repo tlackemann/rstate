@@ -4,7 +4,7 @@ mod tests {
     use std::hash::Hash;
 
     #[test]
-    fn history_machine() {
+    fn undo_redo_machine() {
         #[derive(Debug, Copy, Clone)]
         enum Action {
             Increment(u8),
@@ -41,6 +41,7 @@ mod tests {
                     }
                     context
                 }),
+                ..Default::default()
             },
         );
 

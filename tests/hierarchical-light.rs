@@ -4,7 +4,7 @@ mod tests {
     use std::hash::Hash;
 
     #[test]
-    fn toggle_machine() {
+    fn hierarchical_lights_machine() {
         #[derive(Copy, Clone, Debug)]
         enum Action {
             Timer,
@@ -43,6 +43,7 @@ mod tests {
                     Action::Timer => State::Yellow,
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
         machine.add_state(
@@ -53,6 +54,7 @@ mod tests {
                     Action::Timer => State::Red(Red::Wait),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
         machine.add_state(
@@ -63,6 +65,7 @@ mod tests {
                     Action::PedestrianTimer => State::Red(Red::Walk),
                     _ => state,
                 }),
+                ..Default::default()
             },
         );
         machine.add_state(
@@ -85,6 +88,7 @@ mod tests {
                         }
                     }
                 }),
+                ..Default::default()
             },
         );
 
