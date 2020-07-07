@@ -72,7 +72,7 @@ assert_eq!(machine.context.count, 5);
 
 ### Basic Toggle Example
 
-```
+```rust
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 enum Action {
     Toggle,
