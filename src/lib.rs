@@ -14,7 +14,7 @@ pub struct Machine<A, S, C> {
     transitions: HashMap<S, Transition<A, S, C>>,
 }
 
-impl<A: Copy + Eq + Hash, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
+impl<A: Copy, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
     pub fn new(
         id: String,
         initial: S,
@@ -64,7 +64,7 @@ mod tests {
 
     #[test]
     fn toggle_machine() {
-        #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+        #[derive(Copy, Clone, Debug)]
         enum Action {
             Toggle,
         }
@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn increment_machine() {
-        #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+        #[derive(Debug, Copy, Clone)]
         enum Action {
             Increment(u8),
             Decrement(u8),

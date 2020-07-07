@@ -10,7 +10,7 @@ State machines can be created by defining States, Actions, and Transitions.
 
 ```rust
 // Define actions the state machine can perform
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone)]
 enum Action {
     Increment(u8),
     Decrement(u8),
@@ -73,7 +73,7 @@ assert_eq!(machine.context.count, 5);
 ### Basic Toggle Example
 
 ```rust
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug)]
 enum Action {
     Toggle,
 }
