@@ -4,8 +4,9 @@ A Rust library for creating and executing statecharts. Heavily inspired by [xsta
 
 ## Usage
 
-State machines can be created by defining States, Actions, and Transitions. You
-can also optionally define a Context for your machine.
+State machines can be created by defining States, Actions, and Transitions.
+
+### Basic Increment Example
 
 ```rust
 // Define actions the state machine can perform
@@ -68,3 +69,77 @@ machine.send(&Action::Increment(5));
 assert_eq!(machine.current, State::Active);
 assert_eq!(machine.context.count, 5);
 ```
+
+### Basic Toggle Example
+
+```
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+enum Action {
+    Toggle,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum State {
+    Active,
+    Inactive,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Context {
+    count: u8,
+}
+
+let mut states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
+states.insert(
+    State::Active,
+    Transition {
+        context: None,
+        state: Some(|_state, action| {
+            match action {
+                Action::Toggle => State::Inactive
+            }
+        }),
+    },
+);
+states.insert(
+    State::Inactive,
+    Transition {
+        context: Some(|mut context, _action| {
+            context.count += 1;
+            context
+        }),
+        state: Some(|_state, action| {
+            match action {
+                Action::Toggle => State::Active
+            }
+        }),
+    },
+);
+
+let context = Context { count: 0 };
+let mut machine = Machine::<Action, State, Context>::new(
+    "toggle".to_string(),
+    State::Inactive,
+    states,
+    context,
+);
+
+assert_eq!(machine.current, State::Inactive);
+assert_eq!(machine.context.count, 0);
+
+machine.send(&Action::Toggle);
+assert_eq!(machine.current, State::Active);
+assert_eq!(machine.context.count, 1);
+
+machine.send(&Action::Toggle);
+assert_eq!(machine.current, State::Inactive);
+assert_eq!(machine.context.count, 1);
+
+machine.send(&Action::Toggle);
+assert_eq!(machine.current, State::Active);
+assert_eq!(machine.context.count, 2);
+```
+
+## License
+
+MIT
