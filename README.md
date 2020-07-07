@@ -6,6 +6,15 @@ A Rust library for creating and executing statecharts. Heavily inspired by [xsta
 
 State machines can be created by defining States, Actions, and Transitions.
 
+### Running Examples
+
+```bash
+
+cargo run --example <example-name>
+```
+
+You can find relevant examples in the `examples/` folder.
+
 ### Basic Increment Example
 
 ```rust
