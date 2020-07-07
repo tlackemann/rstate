@@ -7,41 +7,41 @@ use std::hash::Hash;
 
 #[derive(Debug)]
 pub struct Machine<A, S, C> {
+    context: C,
+    current: S,
     id: String,
     initial: S,
-    current: S,
-    context: C,
-    states: HashMap<S, HashMap<A, Transition<S, C>>>,
+    transitions: HashMap<S, Transition<A, S, C>>,
 }
 
-impl<A: Eq + Hash, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
+impl<A: Copy + Eq + Hash, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
     pub fn new(
         id: String,
         initial: S,
-        states: HashMap<S, HashMap<A, Transition<S, C>>>,
+        transitions: HashMap<S, Transition<A, S, C>>,
         context: C,
     ) -> Self {
         Machine::<A, S, C> {
+            context,
+            current: initial,
             id,
             initial,
-            current: initial,
-            context,
-            states,
+            transitions,
         }
     }
 
-    pub fn send(&mut self, action: A) {
-        if let Some(transitions) = self.states.get(&self.current) {
-            match transitions.get(&action) {
-                Some(transition) => {
-                    self.current = transition.state.to_owned();
+    pub fn send(&mut self, action: &A) {
+        if let Some(transition) = self.transitions.get(&self.current) {
+            match transition.state {
+                Some(fn_state) => {
+                    self.current = fn_state(self.current, action.to_owned());
+                }
+                None => {}
+            }
 
-                    match transition.action {
-                        Some(action) => {
-                            self.context = action(self.context);
-                        }
-                        None => {}
-                    }
+            match transition.context {
+                Some(fn_context) => {
+                    self.context = fn_context(self.context, action.to_owned());
                 }
                 None => {}
             }
@@ -50,9 +50,12 @@ impl<A: Eq + Hash, S: Eq + Hash + Copy, C: Copy> Machine<A, S, C> {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct Transition<S, C> {
-    state: S,
-    action: Option<fn(context: C) -> C>,
+pub struct Transition<A, S, C> {
+    /// The state to transition to
+    state: Option<fn(state: S, action: A) -> S>,
+
+    /// The action to execute when running this transition
+    context: Option<fn(context: C, action: A) -> C>,
 }
 
 #[cfg(test)]
@@ -61,7 +64,7 @@ mod tests {
 
     #[test]
     fn toggle_machine() {
-        #[derive(Debug, PartialEq, Eq, Hash)]
+        #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
         enum Action {
             Toggle,
         }
@@ -77,31 +80,32 @@ mod tests {
             count: u8,
         }
 
-        let mut active_states: HashMap<Action, Transition<State, Context>> = HashMap::new();
-        active_states.insert(
-            Action::Toggle,
+        let mut states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
+        states.insert(
+            State::Active,
             Transition {
-                action: None,
-                state: State::Inactive,
+                context: None,
+                state: Some(|_state, action| {
+                    match action {
+                        Action::Toggle => State::Inactive
+                    }
+                }),
             },
         );
-
-        let mut inactive_states: HashMap<Action, Transition<State, Context>> = HashMap::new();
-        inactive_states.insert(
-            Action::Toggle,
+        states.insert(
+            State::Inactive,
             Transition {
-                action: Some(|mut context| {
+                context: Some(|mut context, _action| {
                     context.count += 1;
                     context
                 }),
-                state: State::Active,
+                state: Some(|_state, action| {
+                    match action {
+                        Action::Toggle => State::Active
+                    }
+                }),
             },
         );
-
-        let mut states: HashMap<State, HashMap<Action, Transition<State, Context>>> =
-            HashMap::new();
-        states.insert(State::Active, active_states);
-        states.insert(State::Inactive, inactive_states);
 
         let context = Context { count: 0 };
         let mut machine = Machine::<Action, State, Context>::new(
@@ -114,21 +118,22 @@ mod tests {
         assert_eq!(machine.current, State::Inactive);
         assert_eq!(machine.context.count, 0);
 
-        machine.send(Action::Toggle);
+        machine.send(&Action::Toggle);
         assert_eq!(machine.current, State::Active);
         assert_eq!(machine.context.count, 1);
 
-        machine.send(Action::Toggle);
+        machine.send(&Action::Toggle);
         assert_eq!(machine.current, State::Inactive);
         assert_eq!(machine.context.count, 1);
 
-        machine.send(Action::Toggle);
+        machine.send(&Action::Toggle);
         assert_eq!(machine.current, State::Active);
         assert_eq!(machine.context.count, 2);
     }
 
+    #[test]
     fn increment_machine() {
-        #[derive(Debug, PartialEq, Eq, Hash)]
+        #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
         enum Action {
             Increment(u8),
             Decrement(u8),
@@ -145,38 +150,25 @@ mod tests {
         }
 
         // Define transitions between states from actions
-        let mut active_states: HashMap<Action, Transition<State, Context>> = HashMap::new();
-        active_states.insert(
-            Action::Increment(1),
+        let mut states: HashMap<State, Transition<Action, State, Context>> = HashMap::new();
+        states.insert(
+            State::Active,
             Transition {
-                action: Some(|mut context| {
-                    context.count += 1;
+                state: Some(|_state, _action| State::Active),
+                context: Some(|mut context, action| {
+                    match action {
+                        Action::Increment(val) => context.count += val,
+                        Action::Decrement(val) => context.count -= val,
+                    }
                     context
                 }),
-                state: State::Active,
             },
         );
-
-        let mut inactive_states: HashMap<Action, Transition<State, Context>> = HashMap::new();
-        inactive_states.insert(
-            Action::Decrement(1),
-            Transition {
-                action: Some(|mut context| {
-                    context.count -= 1;
-                    context
-                }),
-                state: State::Active,
-            },
-        );
-
-        let mut states: HashMap<State, HashMap<Action, Transition<State, Context>>> =
-            HashMap::new();
-        states.insert(State::Active, active_states);
 
         // Create a context
         let context = Context { count: 0 };
         let mut machine = Machine::<Action, State, Context>::new(
-            "toggle".to_string(),
+            "increment".to_string(),
             State::Active,
             states,
             context,
@@ -185,15 +177,15 @@ mod tests {
         assert_eq!(machine.current, State::Active);
         assert_eq!(machine.context.count, 0);
 
-        machine.send(Action::Increment(1));
+        machine.send(&Action::Increment(1));
         assert_eq!(machine.current, State::Active);
         assert_eq!(machine.context.count, 1);
 
-        machine.send(Action::Decrement(1));
+        machine.send(&Action::Decrement(1));
         assert_eq!(machine.current, State::Active);
         assert_eq!(machine.context.count, 0);
 
-        machine.send(Action::Increment(5));
+        machine.send(&Action::Increment(5));
         assert_eq!(machine.current, State::Active);
         assert_eq!(machine.context.count, 5);
     }
