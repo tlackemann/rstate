@@ -46,6 +46,10 @@ impl<A: Copy, S: Eq + Hash + Copy, C: Debug + Copy> Machine<A, S, C> {
         self.context = context;
     }
 
+    /// Export the current machine to SCXML format
+    pub fn to_scxml(&self) -> {
+    }
+
     /// Send an action to the state machine
     pub fn transition(&mut self, action: &A) {
         let current_value = self.value.clone();
@@ -79,9 +83,9 @@ impl<A: Copy, S: Eq + Hash + Copy, C: Debug + Copy> Machine<A, S, C> {
 
             // Run the on_entry for the newest state
             if let Some(transition) = self.states.get(&current_value) {
-                match transition.on_leave {
-                    Some(fn_on_leave) => {
-                        self.context = fn_on_leave(self.context, action.to_owned(), self.value);
+                match transition.on_exit {
+                    Some(fn_on_exit) => {
+                        self.context = fn_on_exit(self.context, action.to_owned(), self.value);
                     }
                     None => {}
                 }
@@ -99,10 +103,12 @@ pub struct Transition<A, S, C> {
     pub on_entry: Option<fn(context: C, action: A, state: S) -> C>,
 
     /// Method to run when transitioned away from
-    pub on_leave: Option<fn(context: C, action: A, state: S) -> C>,
+    pub on_exit: Option<fn(context: C, action: A, state: S) -> C>,
 
     /// The action to execute when running this transition
     pub context: Option<fn(context: C, action: A, state: S) -> C>,
+
+    pub final_state: bool
 }
 
 impl<A, S, C> Default for Transition<A, S, C> {
@@ -110,8 +116,9 @@ impl<A, S, C> Default for Transition<A, S, C> {
         Transition {
             on: None,
             on_entry: None,
-            on_leave: None,
+            on_exit: None,
             context: None,
+            final_state: false,
         }
     }
 }

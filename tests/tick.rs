@@ -62,7 +62,7 @@ mod tests {
                     context.dirty_count += 1;
                     context
                 }),
-                on_leave: Some(|mut context, _action, _state| {
+                on_exit: Some(|mut context, _action, _state| {
                     context.dirty_count = 0;
                     context
                 }),
